@@ -79,5 +79,5 @@ color_image_Q[mask] = 0
 
 merged_image = np.hstack((original_image, color_image_Q))
 
-cv2.imshow('Gray Image', merged_image)
+cv2.imshow('original and cartoon image', merged_image)
 cv2.waitKey(0)
