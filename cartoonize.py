@@ -1,83 +1,79 @@
 import cv2
 import numpy as np
+import os
 
-original_image = cv2.imread('0.jpg')
+def gen_edge_image(image):
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-gray_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
+    median_filtered_image = cv2.medianBlur(gray_image, 5)
 
-median_filtered_image = cv2.medianBlur(gray_image, 5)
+    edges = cv2.Canny(median_filtered_image, 70, 140)
+    cv2.imshow('Original Image', edges)
+    cv2.waitKey(0)
 
-edges = cv2.Canny(median_filtered_image, 60, 120)
+    kernel = np.ones((2, 2), np.uint8)
 
-kernel = np.ones((2, 2), np.uint8)
+    dilated_image = cv2.dilate(edges, kernel, iterations=2)
+    cv2.imshow('Original Image', dilated_image)
+    cv2.waitKey(0)
+    
+    dilated_image_3D = np.dstack((dilated_image, dilated_image, dilated_image))
+    
+    return dilated_image_3D
 
-dilated_image = cv2.dilate(edges, kernel, iterations=1)
-#dilated_image = edges
-dilated_image_3D = np.dstack((dilated_image, dilated_image, dilated_image))
+def quantize(image):
+    smoothed_image = cv2.blur(image, (3, 3))
+    
+    mask1 = (smoothed_image >= 0) & (smoothed_image <= 31)
+    mask2 = (smoothed_image >= 32) & (smoothed_image <= 63)
+    mask3 = (smoothed_image >= 64) & (smoothed_image <= 95)
+    mask4 = (smoothed_image >= 96) & (smoothed_image <= 127)
+    mask5 = (smoothed_image >= 128) & (smoothed_image <= 159)
+    mask6 = (smoothed_image >= 160) & (smoothed_image <= 191)
+    mask7 = (smoothed_image >= 192) & (smoothed_image <= 223)
+    mask8 = (smoothed_image >= 224) & (smoothed_image <= 255)
+    
+    smoothed_image[mask1] = 0
+    smoothed_image[mask2] = 47
+    smoothed_image[mask3] = 80
+    smoothed_image[mask4] = 112
+    smoothed_image[mask5] = 144
+    smoothed_image[mask6] = 176
+    smoothed_image[mask7] = 208
+    smoothed_image[mask8] = 255
+    
+    return smoothed_image
 
-blue_channel, green_channel, red_channel = cv2.split(original_image)
+def gen_quantize_image(image):
+    blue_channel, green_channel, red_channel = cv2.split(image)
 
-blue_smoothed_image_Q = cv2.blur(blue_channel, (3, 3))
-green_smoothed_image_Q = cv2.blur(green_channel, (3, 3))
-red_smoothed_image_Q = cv2.blur(red_channel, (3, 3))
+    blue_smoothed_image_Q = quantize(blue_channel)
+    green_smoothed_image_Q = quantize(green_channel)
+    red_smoothed_image_Q = quantize(red_channel)
 
-mask1 = (blue_smoothed_image_Q >= 0) & (blue_smoothed_image_Q <= 31)
-blue_smoothed_image_Q[mask1] = 0
-mask2 = (blue_smoothed_image_Q >= 32) & (blue_smoothed_image_Q <= 63)
-blue_smoothed_image_Q[mask2] = 47
-mask3 = (blue_smoothed_image_Q >= 64) & (blue_smoothed_image_Q <= 95)
-blue_smoothed_image_Q[mask3] = 80
-mask4 = (blue_smoothed_image_Q >= 96) & (blue_smoothed_image_Q <= 127)
-blue_smoothed_image_Q[mask4] = 112
-mask5 = (blue_smoothed_image_Q >= 128) & (blue_smoothed_image_Q <= 159)
-blue_smoothed_image_Q[mask5] = 144
-mask6 = (blue_smoothed_image_Q >= 160) & (blue_smoothed_image_Q <= 191)
-blue_smoothed_image_Q[mask6] = 176
-mask6 = (blue_smoothed_image_Q >= 192) & (blue_smoothed_image_Q <= 223)
-blue_smoothed_image_Q[mask6] = 208
-mask6 = (blue_smoothed_image_Q >= 224) & (blue_smoothed_image_Q <= 255)
-blue_smoothed_image_Q[mask6] = 255
+    color_image_Q = np.dstack((blue_smoothed_image_Q, green_smoothed_image_Q, red_smoothed_image_Q))
+    
+    return color_image_Q
 
-mask1 = (green_smoothed_image_Q >= 0) & (green_smoothed_image_Q <= 31)
-green_smoothed_image_Q[mask1] = 0
-mask2 = (green_smoothed_image_Q >= 32) & (green_smoothed_image_Q <= 63)
-green_smoothed_image_Q[mask2] = 47
-mask3 = (green_smoothed_image_Q >= 64) & (green_smoothed_image_Q <= 95)
-green_smoothed_image_Q[mask3] = 80
-mask4 = (green_smoothed_image_Q >= 96) & (green_smoothed_image_Q <= 127)
-green_smoothed_image_Q[mask4] = 112
-mask5 = (green_smoothed_image_Q >= 128) & (green_smoothed_image_Q <= 159)
-green_smoothed_image_Q[mask5] = 144
-mask6 = (green_smoothed_image_Q >= 160) & (green_smoothed_image_Q <= 191)
-green_smoothed_image_Q[mask6] = 176
-mask6 = (green_smoothed_image_Q >= 192) & (green_smoothed_image_Q <= 223)
-green_smoothed_image_Q[mask6] = 208
-mask6 = (green_smoothed_image_Q >= 224) & (green_smoothed_image_Q <= 255)
-green_smoothed_image_Q[mask6] = 255
+def combine_image(edge_image, color_image):
+    mask = (edge_image == 255)
+    color_image[mask] = 0
+    
+    return color_image
 
-mask1 = (red_smoothed_image_Q >= 0) & (red_smoothed_image_Q <= 31)
-red_smoothed_image_Q[mask1] = 0
-mask2 = (red_smoothed_image_Q >= 32) & (red_smoothed_image_Q <= 63)
-red_smoothed_image_Q[mask2] = 47
-mask3 = (red_smoothed_image_Q >= 64) & (red_smoothed_image_Q <= 95)
-red_smoothed_image_Q[mask3] = 80
-mask4 = (red_smoothed_image_Q >= 96) & (red_smoothed_image_Q <= 127)
-red_smoothed_image_Q[mask4] = 112
-mask5 = (red_smoothed_image_Q >= 128) & (red_smoothed_image_Q <= 159)
-red_smoothed_image_Q[mask5] = 144
-mask6 = (red_smoothed_image_Q >= 160) & (red_smoothed_image_Q <= 191)
-red_smoothed_image_Q[mask6] = 176
-mask6 = (red_smoothed_image_Q >= 192) & (red_smoothed_image_Q <= 223)
-red_smoothed_image_Q[mask6] = 208
-mask6 = (red_smoothed_image_Q >= 224) & (red_smoothed_image_Q <= 255)
-red_smoothed_image_Q[mask6] = 255
+folder_path = "./images/"
+number = 0
+for filename in os.listdir(folder_path):
+    file_path = os.path.join(folder_path, filename)
+    if os.path.isfile(file_path):
+        original_image = cv2.imread(file_path)
+        
+        edge_image = gen_edge_image(original_image)
 
-color_image_Q = np.dstack((blue_smoothed_image_Q, green_smoothed_image_Q, red_smoothed_image_Q))
+        color_image_Q = gen_quantize_image(original_image)
 
-mask = dilated_image_3D == 255
-color_image_Q[mask] = 0
-
-merged_image = np.hstack((original_image, color_image_Q))
-
-cv2.imshow('original and cartoon image', merged_image)
-cv2.waitKey(0)
+        cartoon_image = combine_image(edge_image, color_image_Q)
+        
+        output_path = "./cartoon/" + str(number).zfill(3) + ".jpg"
+        cv2.imwrite(output_path, cartoon_image)
+        number = number + 1
