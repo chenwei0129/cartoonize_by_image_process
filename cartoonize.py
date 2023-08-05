@@ -8,14 +8,10 @@ def gen_edge_image(image):
     median_filtered_image = cv2.medianBlur(gray_image, 5)
 
     edges = cv2.Canny(median_filtered_image, 70, 140)
-    cv2.imshow('Original Image', edges)
-    cv2.waitKey(0)
 
     kernel = np.ones((2, 2), np.uint8)
 
-    dilated_image = cv2.dilate(edges, kernel, iterations=2)
-    cv2.imshow('Original Image', dilated_image)
-    cv2.waitKey(0)
+    dilated_image = cv2.dilate(edges, kernel, iterations=1)
     
     dilated_image_3D = np.dstack((dilated_image, dilated_image, dilated_image))
     
