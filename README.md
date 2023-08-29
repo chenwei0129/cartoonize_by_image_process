@@ -1,6 +1,6 @@
 # cartoonize
 
-# *This is the paper[1] implement, which can cartoonize any image to cartoon style.*
+# *This is the paper[1] implementation, which can cartoonize any image to cartoon style.*
 
 ## How to use
 Put your images in the folder "images" and run the python code, then, the cartoonized images will be the folder "cartoon".
